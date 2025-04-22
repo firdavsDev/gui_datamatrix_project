@@ -7,7 +7,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 
-def generate_pdf(pdf_path, unique_ids):
+def generate_pdf(pdf_path, unique_ids, company_name):
     c = canvas.Canvas(pdf_path, pagesize=A4)
     page_width, page_height = A4
 
@@ -17,9 +17,6 @@ def generate_pdf(pdf_path, unique_ids):
 
         # DataMatrix kodi yaratish
         encoded = encode(unique_id.encode("utf-8"))
-        if encoded is None:
-            print(f"Error: DataMatrix kodi yaratilmadi, unique_id: {unique_id}")
-            continue
 
         img = Image.frombytes("RGB", (encoded.width, encoded.height), encoded.pixels)
         img = img.resize((150, 150), Image.Resampling.LANCZOS)
@@ -31,6 +28,13 @@ def generate_pdf(pdf_path, unique_ids):
         x = (page_width - 150 * 2.83465) / 2
         y = (page_height - 150 * 2.83465) / 2
         c.drawImage(temp_file, x, y, 150 * 2.83465, 150 * 2.83465)
+
+        # Kompaniya nomini DataMatrix ostiga yozish
+        text_x = page_width / 2
+        text_y = y - 20  # DataMatrix ostida joylashgan
+        c.setFont("Helvetica", 12)
+        c.drawCentredString(text_x, text_y, company_name)
+
         c.showPage()
 
         # Vaqtinchalik faylni o‘chirish

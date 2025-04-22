@@ -32,13 +32,15 @@ from utils.pdf_generator import generate_pdf
 class GeneratorThread(QThread):
     finished = pyqtSignal()
 
-    def __init__(self, pdf_path, unique_ids):
+    def __init__(self, pdf_path, unique_ids, packaging_company):
         super().__init__()
         self.pdf_path = pdf_path
         self.unique_ids = unique_ids
+        self.packaging_company = packaging_company
 
     def run(self):
-        generate_pdf(self.pdf_path, self.unique_ids)
+        # PDF generatsiya qilish
+        generate_pdf(self.pdf_path, self.unique_ids, self.packaging_company)
         self.finished.emit()
 
 
@@ -115,8 +117,8 @@ class DataMatrixEncoder(QMainWindow):
         # Quti soni
         self.box_count_label = QLabel("Quti soni (10,000 dan kam):")
         self.box_count_input = QSpinBox()
-        self.box_count_input.setRange(1, 9999)
-        self.box_count_input.setValue(1)
+        self.box_count_input.setRange(1, 10000)
+        self.box_count_input.setValue(100)
         left_layout.addWidget(self.box_count_label)
         left_layout.addWidget(self.box_count_input)
 
@@ -233,7 +235,7 @@ class DataMatrixEncoder(QMainWindow):
 
         # PDF generatsiyasi uchun thread ishga tushirish
         self.pdf_path = "output_datamatrix.pdf"
-        self.thread = GeneratorThread(self.pdf_path, unique_ids)
+        self.thread = GeneratorThread(self.pdf_path, unique_ids, packaging_company)
         self.thread.finished.connect(self.on_generation_finished)
         self.thread.start()
 
