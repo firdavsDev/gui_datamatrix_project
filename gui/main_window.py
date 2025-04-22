@@ -1,8 +1,10 @@
 import os
+import random
 import sqlite3
 import xml.etree.ElementTree as ET
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QMovie
 from PyQt5.QtWidgets import (
     QApplication,
     QComboBox,
@@ -22,8 +24,22 @@ from database.db_operations import (
     get_box_types,
     get_products,
     save_box_data,
+    save_datamatrix_code,
 )
 from utils.pdf_generator import generate_pdf
+
+
+class GeneratorThread(QThread):
+    finished = pyqtSignal()
+
+    def __init__(self, pdf_path, unique_ids):
+        super().__init__()
+        self.pdf_path = pdf_path
+        self.unique_ids = unique_ids
+
+    def run(self):
+        generate_pdf(self.pdf_path, self.unique_ids)
+        self.finished.emit()
 
 
 class DataMatrixEncoder(QMainWindow):
@@ -104,16 +120,27 @@ class DataMatrixEncoder(QMainWindow):
         left_layout.addWidget(self.box_count_label)
         left_layout.addWidget(self.box_count_input)
 
-        # Save & Generate tugmasi
+        # Save & Generate va Reset tugmalari
+        button_layout = QHBoxLayout()
         self.generate_button = QPushButton("Save & Generate")
-        self.generate_button.clicked.connect(self.save_and_generate)
-        left_layout.addWidget(self.generate_button)
+        self.generate_button.clicked.connect(self.start_generation)
+        self.reset_button = QPushButton("Reset")
+        self.reset_button.clicked.connect(self.reset_fields)
+        button_layout.addWidget(self.generate_button)
+        button_layout.addWidget(self.reset_button)
+        left_layout.addLayout(button_layout)
 
         # O‘ng taraf: Xabar oynasi va link
         self.message_label = QLabel(
             "PDF generatsiya qilish uchun ma’lumotlarni kiriting."
         )
         self.message_label.setAlignment(Qt.AlignCenter)
+
+        # Loading animatsiyasi uchun label
+        self.loading_label = QLabel()
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        self.loading_label.setFixedSize(150, 150)
+        self.loading_label.hide()  # Dastlab yashirin
 
         # Contact with Admin linki
         self.contact_link = QLabel(
@@ -135,6 +162,7 @@ class DataMatrixEncoder(QMainWindow):
 
         right_layout = QVBoxLayout()
         right_layout.addWidget(self.message_label)
+        right_layout.addWidget(self.loading_label, alignment=Qt.AlignCenter)
         right_layout.addWidget(self.contact_link)
         right_layout.addLayout(button_layout)
 
@@ -142,7 +170,7 @@ class DataMatrixEncoder(QMainWindow):
         main_layout.addWidget(left_widget)
         main_layout.addLayout(right_layout)
 
-    def save_and_generate(self):
+    def start_generation(self):
         # Inputlarni olish
         packaging_company = self.packaging_company_input.text()
         export_company = self.export_company_input.text()
@@ -164,6 +192,15 @@ class DataMatrixEncoder(QMainWindow):
             )
             return
 
+        # Loading animatsiyasini ko‘rsatish
+        self.message_label.hide()
+        self.loading_label.show()
+        self.loading_movie = QMovie("loading.gif")
+        self.loading_label.setMovie(self.loading_movie)
+        self.loading_movie.start()
+        self.generate_button.setEnabled(False)
+        self.reset_button.setEnabled(False)
+
         # Bazaga saqlash
         conn, cursor, box_id = save_box_data(
             packaging_company,
@@ -175,9 +212,12 @@ class DataMatrixEncoder(QMainWindow):
             box_count,
         )
 
-        # PDF generatsiya qilish
-        pdf_path = "output_datamatrix.pdf"
-        generate_pdf(pdf_path, box_count, box_id, conn, cursor)
+        # Noyob ID’lar generatsiya qilish va bazaga saqlash
+        unique_ids = []
+        for _ in range(box_count):
+            unique_id = str(random.randint(100000000, 999999999))
+            save_datamatrix_code(conn, cursor, box_id, unique_id)
+            unique_ids.append(unique_id)
 
         # XML generatsiya qilish
         self.generate_xml(
@@ -191,13 +231,43 @@ class DataMatrixEncoder(QMainWindow):
             box_count,
         )
 
+        # PDF generatsiyasi uchun thread ishga tushirish
+        self.pdf_path = "output_datamatrix.pdf"
+        self.thread = GeneratorThread(self.pdf_path, unique_ids)
+        self.thread.finished.connect(self.on_generation_finished)
+        self.thread.start()
+
+    def on_generation_finished(self):
+        # Loading animatsiyasini yashirish
+        self.loading_movie.stop()
+        self.loading_label.hide()
+        self.message_label.show()
+        self.generate_button.setEnabled(True)
+        self.reset_button.setEnabled(True)
+
         # Xabar ko‘rsatish
-        self.pdf_path = pdf_path
         self.download_pdf_button.setEnabled(True)
         self.download_xml_button.setEnabled(True)
         self.message_label.setText(
             "PDF va XML tayyor! Yuklab olish uchun tugmalarni bosing."
         )
+
+    def reset_fields(self):
+        # Barcha input maydonlarini tozalash
+        self.packaging_company_input.clear()
+        self.export_company_input.clear()
+        self.box_type_input.setCurrentIndex(0)
+        self.width_input.setValue(10)
+        self.height_input.setValue(10)
+        self.product_input.setCurrentIndex(0)
+        self.box_count_input.setValue(1)
+        self.download_pdf_button.setEnabled(False)
+        self.download_xml_button.setEnabled(False)
+        self.message_label.setText(
+            "PDF generatsiya qilish uchun ma’lumotlarni kiriting."
+        )
+        self.pdf_path = None
+        self.xml_path = None
 
     def generate_xml(
         self,
