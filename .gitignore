@@ -1,0 +1,32 @@
+# Python vaqtinchalik fayllari
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.log
+
+# Virtual muhit jildi
+venv/
+env/
+
+# PyInstaller yaratgan jildlar va fayllar
+build/
+dist/
+*.spec
+
+# SQLite baza fayli (agar saqlashni xohlamasangiz)
+database.db
+
+# Vaqtinchalik fayllar
+temp.png
+output_datamatrix.pdf
+output_datamatrix.xml
+
+# Operatsion tizim fayllari
+.DS_Store
+Thumbs.db
+
+# IDE sozlamalari
+.vscode/
+.idea/

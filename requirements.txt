@@ -1,0 +1,4 @@
+PyQt5==5.15.9
+pylibdmtx==0.1.10
+reportlab==4.2.2
+Pillow==10.4.0
