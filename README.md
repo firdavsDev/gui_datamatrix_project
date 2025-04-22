@@ -93,7 +93,7 @@ python main.py
 - Agar logo ko‘rinmasa, `logo.png` faylining loyiha jildida ekanligini tekshiring.
 - Agar `.exe` fayl ishlamasa, PyInstaller’ga qo‘shimcha sozlamalar qo‘shish kerak bo‘lishi mumkin:
   ```bash
-  pyinstaller --name "KarantinUz - Qadoqlash System" --icon logo.ico --onefile --hidden-import pylibdmtx --hidden-import reportlab main.py
+     pyinstaller --name "KarantinUz - Qadoqlash System" --icon logo.ico --onefile --hidden-import pylibdmtx --hidden-import reportlab --hidden-import PyQt5.QtWidgets main.py
   ```
 
 ## Kontakt
