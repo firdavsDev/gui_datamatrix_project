@@ -35,7 +35,7 @@ class LoginWindow(QDialog):
 
         # Logo qo‘shish
         logo_label = QLabel(self)
-        logo_pixmap = QPixmap("logo.png")
+        logo_pixmap = QPixmap("static/logo.png")
         if not logo_pixmap.isNull():
             logo_pixmap = logo_pixmap.scaled(
                 150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation

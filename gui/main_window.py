@@ -195,7 +195,7 @@ class DataMatrixEncoder(QMainWindow):
         # Loading animatsiyasini ko‘rsatish
         self.message_label.hide()
         self.loading_label.show()
-        self.loading_movie = QMovie("loading.gif")
+        self.loading_movie = QMovie("static/loading.gif")
         self.loading_label.setMovie(self.loading_movie)
         self.loading_movie.start()
         self.generate_button.setEnabled(False)

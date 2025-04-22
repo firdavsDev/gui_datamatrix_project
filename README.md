@@ -87,13 +87,13 @@ python main.py
 ## Talablar
 - Python 3.8 yoki undan yuqori.
 - Windows operatsion tizimi (`.exe` versiyasi uchun).
-- `logo.png` va `logo.ico` fayllari.
+- `logo.png`, `logo.ico` va loading.gif fayllari.
 
 ## Muammolar bo‘lsa
 - Agar logo ko‘rinmasa, `logo.png` faylining loyiha jildida ekanligini tekshiring.
 - Agar `.exe` fayl ishlamasa, PyInstaller’ga qo‘shimcha sozlamalar qo‘shish kerak bo‘lishi mumkin:
   ```bash
-     pyinstaller --name "KarantinUz - Qadoqlash System" --icon logo.ico --onefile --hidden-import pylibdmtx --hidden-import reportlab --hidden-import PyQt5.QtWidgets main.py
+     pyinstaller --name "KarantinUz - Qadoqlash System" --icon static/logo.ico --onefile --hidden-import pylibdmtx --hidden-import reportlab --hidden-import PyQt5.QtWidgets main.py
   ```
 
 ## Kontakt
